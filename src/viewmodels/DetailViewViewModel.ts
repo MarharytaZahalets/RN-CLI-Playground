@@ -3,31 +3,36 @@ import { useCallback, useRef, useState } from 'react';
 import { SheetManager } from 'react-native-actions-sheet';
 
 import { TASK_STATUS_FIELDS } from '../core/constants/ui';
-import { generateId, hasChanges } from '../core/utils/utils';
+import { generateId, hasChanges, toCalendarDate } from '../core/utils/utils';
 import { useTaskViewModel } from './TaskListViewModel';
 
 import type { NavigationProp, RouteProp } from '@react-navigation/native';
 import type { Task, TaskStatus } from '../models/TaskList';
 import type { RootStackParamList } from '../navigation/types';
 
+type DetailTask = {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  id: string;
+  createdAt: Date;
+  dueDate: string | null;
+};
+
 export const useDetailViewModel = (
   route: RouteProp<RootStackParamList, 'DetailView'>,
   navigation: NavigationProp<RootStackParamList, 'DetailView'>,
 ) => {
-  const { id, createdAt, title, description, status } = route.params;
-  const [updatedTask, setUpdatedTask] = useState<{
-    title: string;
-    description: string;
-    status: TaskStatus;
-    id: string;
-    createdAt: Date;
-  }>({
+  const { id, createdAt, title, description, status, dueDate } = route.params;
+  const [updatedTask, setUpdatedTask] = useState<DetailTask>({
     title,
     description,
     status,
     createdAt,
     id,
+    dueDate: dueDate ?? null,
   });
+  const [isDescriptionEditorVisible, setIsDescriptionEditorVisible] = useState(false);
 
   const lastAction = useRef<'save' | 'delete' | null>(null);
   const [didAttemptMutation, setDidAttemptMutation] = useState(false);
@@ -36,7 +41,7 @@ export const useDetailViewModel = (
     fetchOnMount: false,
   });
 
-  const setStatusAndClose = useCallback((task: Task) => {
+  const setStatusAndClose = useCallback((task: DetailTask) => {
     setUpdatedTask(task);
     SheetManager.hide('app-action-sheet');
   }, []);
@@ -49,21 +54,25 @@ export const useDetailViewModel = (
           {
             id: '1',
             field: TASK_STATUS_FIELDS.ongoing,
+            selected: updatedTask.status === 'ongoing',
             onPress: () => setStatusAndClose({ ...updatedTask, status: 'ongoing' }),
           },
           {
             id: '2',
             field: TASK_STATUS_FIELDS.inProcess,
+            selected: updatedTask.status === 'inProcess',
             onPress: () => setStatusAndClose({ ...updatedTask, status: 'inProcess' }),
           },
           {
             id: '3',
             field: TASK_STATUS_FIELDS.done,
+            selected: updatedTask.status === 'done',
             onPress: () => setStatusAndClose({ ...updatedTask, status: 'done' }),
           },
           {
             id: '4',
             field: TASK_STATUS_FIELDS.canceled,
+            selected: updatedTask.status === 'canceled',
             onPress: () => setStatusAndClose({ ...updatedTask, status: 'canceled' }),
           },
         ],
@@ -79,6 +88,31 @@ export const useDetailViewModel = (
     setUpdatedTask({ ...updatedTask, description: descriptionString });
   };
 
+  const openDescriptionEditor = () => {
+    setIsDescriptionEditorVisible(true);
+  };
+
+  const closeDescriptionEditor = () => {
+    setIsDescriptionEditorVisible(false);
+  };
+
+  const onDueDateSelected = (date: Date) => {
+    setUpdatedTask({ ...updatedTask, dueDate: toCalendarDate(date) });
+  };
+
+  const clearDueDate = () => {
+    setUpdatedTask({ ...updatedTask, dueDate: null });
+  };
+
+  const openDueDatePicker = () => {
+    SheetManager.show('due-date-picker', {
+      payload: {
+        date: updatedTask.dueDate,
+        onConfirm: onDueDateSelected,
+      },
+    });
+  };
+
   const onSave = async () => {
     if (loading) {
       return;
@@ -87,19 +121,25 @@ export const useDetailViewModel = (
     lastAction.current = 'save';
     setDidAttemptMutation(true);
     let success = true;
+    const payload: Task = {
+      ...updatedTask,
+      dueDate: updatedTask.dueDate,
+    };
 
     if (!id) {
       success = await addTask({
-        ...updatedTask,
+        ...payload,
         id: generateId(),
         createdAt: new Date(),
       });
     } else if (
-      hasChanges(route.params, updatedTask, ['title', 'description', 'status'])
+      hasChanges(
+        { ...route.params, dueDate: route.params.dueDate ?? null },
+        updatedTask,
+        ['title', 'description', 'status', 'dueDate'],
+      )
     ) {
-      success = await updateTask(id, {
-        ...updatedTask,
-      });
+      success = await updateTask(id, payload);
     }
 
     if (success) {
@@ -134,9 +174,15 @@ export const useDetailViewModel = (
     updatedTask,
     loading,
     error: didAttemptMutation ? error : null,
+    isDescriptionEditorVisible,
     setTitle,
     setDescription,
+    openDescriptionEditor,
+    closeDescriptionEditor,
     openChangeStatus,
+    openDueDatePicker,
+    onDueDateSelected,
+    clearDueDate,
     onSave,
     onDelete,
     onRetry,

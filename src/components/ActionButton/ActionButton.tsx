@@ -10,6 +10,7 @@ interface ActionButtonProps {
   containerStyle?: object;
   contentStyle?: object;
   fullScreenWidth?: boolean;
+  disabled?: boolean;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -19,15 +20,20 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   contentStyle,
   children,
   fullScreenWidth = false,
+  disabled = false,
 }) => {
+  const pressableStyle = ({ pressed }: { pressed: boolean }) => [
+    styles.button,
+    style,
+    { opacity: disabled ? 0.4 : pressed ? 0.7 : 1 },
+  ];
+
   if (fullScreenWidth) {
     return (
       <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          style,
-          { opacity: pressed ? 0.7 : 1 }, // Optional press effect
-        ]}
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        style={pressableStyle}
         onPress={onPress}
       >
         <View style={[styles.content, contentStyle]}>{children}</View>
@@ -37,11 +43,9 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          style,
-          { opacity: pressed ? 0.7 : 1 }, // Optional press effect
-        ]}
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        style={pressableStyle}
         onPress={onPress}
       >
         <View style={styles.content}>{children}</View>

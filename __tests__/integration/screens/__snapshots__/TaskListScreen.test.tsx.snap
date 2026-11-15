@@ -4,10 +4,15 @@ exports[`TaskListScreen integration renders list of tasks and matches snapshot 1
 <View
   style={
     {
+      "backgroundColor": "#0E1524",
+      "justifyContent": "flex-start",
       "marginVertical": 0,
     }
   }
 >
+  <Text>
+    Tasks
+  </Text>
   <View>
     <View
       accessibilityState={
@@ -82,7 +87,7 @@ exports[`TaskListScreen integration renders list of tasks and matches snapshot 1
       }
     >
       <Text>
-        Sort
+        In progress
       </Text>
     </View>
     <TextInput
@@ -93,7 +98,9 @@ exports[`TaskListScreen integration renders list of tasks and matches snapshot 1
   <RCTScrollView
     contentContainerStyle={
       {
-        "paddingTop": 20,
+        "flexGrow": 1,
+        "paddingBottom": 140,
+        "paddingTop": 4,
       }
     }
     data={
