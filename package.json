@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.0.0",
+    "@react-native-community/datetimepicker": "^9.3.0",
     "@react-navigation/bottom-tabs": "^7.0.0",
     "@react-navigation/elements": "^2.0.0",
     "@react-navigation/native": "^7.0.0",
@@ -26,10 +27,10 @@
     "react-native-actions-sheet": "10.1.1",
     "react-native-gesture-handler": "^3.2.1",
     "react-native-reanimated": "4.6.0",
-    "react-native-worklets": "0.12.2",
     "react-native-safe-area-context": "^5.8.1",
     "react-native-screens": "^4.27.0",
     "react-native-svg": "^15.12.1",
+    "react-native-worklets": "0.12.2",
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
@@ -42,6 +43,7 @@
     "@react-native-community/cli-platform-ios": "20.2.0",
     "@react-native/babel-preset": "0.87.1",
     "@react-native/eslint-config": "0.87.1",
+    "@react-native/eslint-plugin": "0.87.1",
     "@react-native/jest-preset": "0.87.1",
     "@react-native/metro-config": "0.87.1",
     "@react-native/typescript-config": "0.87.1",
@@ -51,7 +53,6 @@
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
     "eslint": "^8.57.1",
-    "@react-native/eslint-plugin": "0.87.1",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-ft-flow": "^2.0.1",
     "eslint-plugin-jest": "^29.0.1",

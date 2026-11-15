@@ -8,6 +8,7 @@ import type { Task } from '../../../src/models/TaskList';
 const mockSortActionList = jest.fn();
 const mockSearchTaskList = jest.fn();
 const mockFetchTaskList = jest.fn();
+const mockSetStatusFilter = jest.fn();
 
 const task: Task = {
   id: '1',
@@ -24,6 +25,9 @@ const mockVm = {
   fetchTaskList: mockFetchTaskList,
   sortActionList: mockSortActionList,
   searchTaskList: mockSearchTaskList,
+  setStatusFilter: mockSetStatusFilter,
+  statusFilter: 'all' as const,
+  sourceTaskCount: 1,
 };
 
 jest.mock('../../../src/viewmodels/TaskListViewModel', () => ({
@@ -49,21 +53,22 @@ jest.mock('../../../src/components', () => {
         <Text>{message}</Text>
       </TouchableOpacity>
     ),
+    BaseText: ({ children }: { children: React.ReactNode }) => <Text>{children}</Text>,
     ActionTools: ({
       onAddTask,
       onSearchBy,
-      onSortTaskList,
+      onStatusFilterChange,
     }: {
       onAddTask: () => void;
       onSearchBy: (q: string) => void;
-      onSortTaskList: () => void;
+      onStatusFilterChange: (filter: string) => void;
     }) => (
       <View>
         <TouchableOpacity onPress={onAddTask}>
           <Text>Add</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onSortTaskList}>
-          <Text>Sort</Text>
+        <TouchableOpacity onPress={() => onStatusFilterChange('inProgress')}>
+          <Text>In progress</Text>
         </TouchableOpacity>
         <TextInput onChangeText={onSearchBy} value="" />
       </View>
@@ -80,7 +85,10 @@ describe('TaskListScreen integration', () => {
     mockVm.taskList = [task];
     mockVm.loading = false;
     mockVm.error = null;
+    mockVm.sourceTaskCount = 1;
     mockFetchTaskList.mockClear();
+    mockSetStatusFilter.mockClear();
+    mockSearchTaskList.mockClear();
   });
 
   const findPressable = (root: renderer.ReactTestInstance, label: string) => {
@@ -118,16 +126,16 @@ describe('TaskListScreen integration', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Path.DetailView, expect.objectContaining(task));
   });
 
-  it('calls sortActionList when sort is pressed', () => {
+  it('calls setStatusFilter when a status chip is pressed', () => {
     const navigation = createNavigation();
     const root = renderScreen(navigation).root;
 
-    const sortButton = findPressable(root, 'Sort');
+    const chip = findPressable(root, 'In progress');
     renderer.act(() => {
-      sortButton?.props.onPress();
+      chip?.props.onPress();
     });
 
-    expect(mockSortActionList).toHaveBeenCalled();
+    expect(mockSetStatusFilter).toHaveBeenCalledWith('inProgress');
   });
 
   it('calls searchTaskList when search text changes', () => {
@@ -144,6 +152,7 @@ describe('TaskListScreen integration', () => {
 
   it('shows a loading indicator when loading with no tasks', () => {
     mockVm.taskList = [];
+    mockVm.sourceTaskCount = 0;
     mockVm.loading = true;
     const navigation = createNavigation();
     const component = renderScreen(navigation);
@@ -153,14 +162,25 @@ describe('TaskListScreen integration', () => {
 
   it('shows empty success state when there are no tasks', () => {
     mockVm.taskList = [];
+    mockVm.sourceTaskCount = 0;
     const navigation = createNavigation();
     const component = renderScreen(navigation);
 
     expect(component.root.findByProps({ children: 'No tasks' })).toBeTruthy();
   });
 
+  it('shows no matching tasks when a search has no results', () => {
+    mockVm.taskList = [];
+    mockVm.sourceTaskCount = 2;
+    const navigation = createNavigation();
+    const component = renderScreen(navigation);
+
+    expect(component.root.findByProps({ children: 'No matching tasks' })).toBeTruthy();
+  });
+
   it('shows error state and retries via the view model', () => {
     mockVm.taskList = [];
+    mockVm.sourceTaskCount = 0;
     mockVm.error = 'HTTP 500: boom';
     const navigation = createNavigation();
     const retry = findPressable(

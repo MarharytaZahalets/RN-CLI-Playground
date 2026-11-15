@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, type ListRenderItem } from 'react-native';
 import {
   ActionTools,
   AppSaveAreaView,
+  BaseText,
   EmptyComponent,
   ErrorState,
   TaskCard,
@@ -17,8 +18,16 @@ import type { Task } from '../../models/TaskList';
 import type { TaskListScreenProps } from '../../navigation/types';
 
 const TaskListScreen: React.FC<TaskListScreenProps> = ({ navigation }) => {
-  const { taskList, loading, error, fetchTaskList, sortActionList, searchTaskList } =
-    useTaskViewModel();
+  const {
+    taskList,
+    loading,
+    error,
+    fetchTaskList,
+    searchTaskList,
+    setStatusFilter,
+    statusFilter,
+    sourceTaskCount,
+  } = useTaskViewModel();
 
   const onTaskPress = (item: Task) => {
     navigation.navigate(Path.DetailView, { ...item });
@@ -35,24 +44,25 @@ const TaskListScreen: React.FC<TaskListScreenProps> = ({ navigation }) => {
       description: '',
       createdAt: '2024-11-7' as unknown as Date,
       status: 'ongoing',
+      dueDate: null,
     });
   };
 
   const renderContent = () => {
     if (loading && taskList.length === 0) {
-      return <ActivityIndicator size='large' color={Colors.primary} style={styles.loader} />;
+      return (
+        <ActivityIndicator size='large' color={Colors.primary} style={styles.loader} />
+      );
     }
 
-    if (error && taskList.length === 0) {
+    if (error && sourceTaskCount === 0) {
       return <ErrorState message={error} onRetry={fetchTaskList} />;
     }
 
     if (taskList.length > 0) {
       return (
         <>
-          {error ? (
-            <ErrorState compact message={error} onRetry={fetchTaskList} />
-          ) : null}
+          {error ? <ErrorState compact message={error} onRetry={fetchTaskList} /> : null}
           <FlatList
             stickyHeaderHiddenOnScroll={false}
             contentContainerStyle={styles.flatListContainer}
@@ -68,15 +78,24 @@ const TaskListScreen: React.FC<TaskListScreenProps> = ({ navigation }) => {
       );
     }
 
-    return <EmptyComponent title={'No tasks'} />;
+    if (sourceTaskCount === 0) {
+      return <EmptyComponent title={'No tasks'} />;
+    }
+
+    return <EmptyComponent title={'No matching tasks'} />;
   };
 
   return (
-    <AppSaveAreaView style={styles.container} edges={['left', 'right']}>
+    <AppSaveAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <BaseText isHeader isBold style={styles.header}>
+        Tasks
+      </BaseText>
       <ActionTools
         onAddTask={onAddTask}
         onSearchBy={searchTaskList}
-        onSortTaskList={sortActionList}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        filtersDisabled={sourceTaskCount === 0}
       />
       {renderContent()}
     </AppSaveAreaView>

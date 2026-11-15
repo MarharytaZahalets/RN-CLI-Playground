@@ -1695,6 +1695,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNDateTimePicker (9.3.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNGestureHandler (3.2.1):
     - hermes-engine
     - RCTRequired
@@ -2072,6 +2094,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2252,6 +2275,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNDateTimePicker:
+    :path: "../node_modules/@react-native-community/datetimepicker"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNReanimated:
@@ -2353,6 +2378,7 @@ SPEC CHECKSUMS:
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
   RNCAsyncStorage: 2f5e3ddbfb3d3168345311b25fb3c470edf36d9d
+  RNDateTimePicker: 03060c68fb3dc96486a17cbf0d679f61d2bbdca1
   RNGestureHandler: ec5fccd94cfa3ef0014ca794e4acd9807e497939
   RNReanimated: a40a23cfa56063c9b0c7af8794c847c0ddf8a99c
   RNScreens: 0135deb65b65d207ee6294d0baf06681e1071d93
