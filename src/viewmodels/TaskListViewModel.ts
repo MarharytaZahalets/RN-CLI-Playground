@@ -5,8 +5,13 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import api from '../api/taskListService';
 import { SORT_BY_FIELDS, SORT_ORDER_FIELDS } from '../core/constants/ui';
+import {
+  matchesSearchQuery,
+  matchesStatusFilter,
+  type TaskStatusFilter,
+} from '../core/utils/filterTaskList';
 import { sortTaskListBy } from '../core/utils/sortTaskList';
-import { dateString, errorHandler } from '../core/utils/utils';
+import { errorHandler } from '../core/utils/utils';
 import { Task, type SortOption, type SortOrder } from '../models/TaskList';
 import { RootState } from '../state/store';
 import {
@@ -30,21 +35,32 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
 
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [sortOrder, setSortOrder] = useState<SortOrder | null>(null);
+  const [statusFilter, setStatusFilterState] = useState<TaskStatusFilter>('all');
   const sortByRef = useRef<SortOption>(sortBy);
   const sortOrderRef = useRef<SortOrder | null>(sortOrder);
+  const statusFilterRef = useRef<TaskStatusFilter>(statusFilter);
+  const searchQueryRef = useRef('');
   const defaultTaskListRef = useRef<Task[]>([...taskList]);
+  const [sourceTaskCount, setSourceTaskCount] = useState(defaultTaskListRef.current.length);
   sortByRef.current = sortBy;
   sortOrderRef.current = sortOrder;
+  statusFilterRef.current = statusFilter;
 
-  const publishList = useCallback(() => {
+  const applyVisibleList = useCallback(() => {
+    let list = [...defaultTaskListRef.current];
+    const query = searchQueryRef.current;
+    if (query) {
+      list = list.filter((task) => matchesSearchQuery(task, query));
+    }
+    list = list.filter((task) => matchesStatusFilter(task, statusFilterRef.current));
+
     const field = sortByRef.current;
     const order = sortOrderRef.current;
-    if (field === 'default' || order == null) {
-      dispatch(setTaskListAction([...defaultTaskListRef.current]));
-      return;
+    if (field !== 'default' && order != null) {
+      list = sortTaskListBy(list, field, order);
     }
 
-    dispatch(setTaskListAction(sortTaskListBy(defaultTaskListRef.current, field, order)));
+    dispatch(setTaskListAction(list));
   }, [dispatch]);
 
   const runRequest = useCallback(
@@ -69,10 +85,11 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
       () => api.getTasks(),
       (data) => {
         defaultTaskListRef.current = data;
-        publishList();
+        setSourceTaskCount(data.length);
+        applyVisibleList();
       },
     );
-  }, [publishList, runRequest]);
+  }, [applyVisibleList, runRequest]);
 
   useEffect(() => {
     if (fetchOnMount) {
@@ -86,11 +103,12 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
         () => api.createTask(task),
         (newTask) => {
           defaultTaskListRef.current = [...defaultTaskListRef.current, newTask];
-          publishList();
+          setSourceTaskCount(defaultTaskListRef.current.length);
+          applyVisibleList();
         },
       );
     },
-    [publishList, runRequest],
+    [applyVisibleList, runRequest],
   );
 
   const updateTask = useCallback(
@@ -101,11 +119,12 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
           defaultTaskListRef.current = defaultTaskListRef.current.map((item) =>
             item.id === updatedTask.id ? updatedTask : item,
           );
-          publishList();
+          setSourceTaskCount(defaultTaskListRef.current.length);
+          applyVisibleList();
         },
       );
     },
-    [publishList, runRequest],
+    [applyVisibleList, runRequest],
   );
 
   const deleteTask = useCallback(
@@ -114,11 +133,12 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
         () => api.deleteTask(id),
         () => {
           defaultTaskListRef.current = defaultTaskListRef.current.filter((item) => item.id !== id);
-          publishList();
+          setSourceTaskCount(defaultTaskListRef.current.length);
+          applyVisibleList();
         },
       );
     },
-    [publishList, runRequest],
+    [applyVisibleList, runRequest],
   );
 
   const sortTaskList = useCallback(
@@ -128,7 +148,7 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
         sortOrderRef.current = null;
         setSortBy('default');
         setSortOrder(null);
-        dispatch(setTaskListAction([...defaultTaskListRef.current]));
+        applyVisibleList();
         return;
       }
 
@@ -138,30 +158,26 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
       const nextOrder = order ?? 'asc';
       sortOrderRef.current = nextOrder;
       setSortOrder(nextOrder);
-      dispatch(setTaskListAction(sortTaskListBy(defaultTaskListRef.current, field, nextOrder)));
+      applyVisibleList();
     },
-    [dispatch],
+    [applyVisibleList],
   );
 
   const searchTaskList = useCallback(
     (query: string) => {
-      if (!query) {
-        fetchTaskList();
-        return;
-      }
-      const updatedList = taskList.filter((task) => {
-        const date = dateString(task.createdAt);
-
-        return (
-          task.title.toLowerCase().includes(query.toLowerCase()) ||
-          task.description.toLowerCase().includes(query.toLowerCase()) ||
-          date.includes(query.toLowerCase()) ||
-          task.status.toLowerCase().includes(query.toLowerCase())
-        );
-      });
-      dispatch(setTaskListAction(updatedList));
+      searchQueryRef.current = query;
+      applyVisibleList();
     },
-    [dispatch, fetchTaskList, taskList],
+    [applyVisibleList],
+  );
+
+  const setStatusFilter = useCallback(
+    (filter: TaskStatusFilter) => {
+      statusFilterRef.current = filter;
+      setStatusFilterState(filter);
+      applyVisibleList();
+    },
+    [applyVisibleList],
   );
 
   const sortActionList = () => {
@@ -206,6 +222,9 @@ export const useTaskViewModel = ({ fetchOnMount = true }: UseTaskViewModelOption
     updateTask,
     deleteTask,
     searchTaskList,
+    setStatusFilter,
+    statusFilter,
+    sourceTaskCount,
     sortActionList,
     sortTaskList,
     sortBy,

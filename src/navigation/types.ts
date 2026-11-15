@@ -11,6 +11,8 @@ import type { Task } from '../models/TaskList';
 // *** Navigator Params ***
 export type RootStackParamList = {
   [Path.Home]: undefined;
+  [Path.SignIn]: undefined;
+  [Path.SignUp]: undefined;
   [Path.Tabs]: NavigatorScreenParams<TabParamList>;
   [Path.DetailView]: Task;
 };
@@ -25,6 +27,16 @@ export type TabParamList = {
 export type HomeScreenProps = NativeStackScreenProps<
   RootStackParamList,
   typeof Path.Home
+>;
+
+export type SignInScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  typeof Path.SignIn
+>;
+
+export type SignUpScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  typeof Path.SignUp
 >;
 
 export type DetailViewScreenProps = NativeStackScreenProps<
@@ -43,7 +55,10 @@ export type GeolocationScreenProps = NativeStackScreenProps<
   typeof Path.Geolocation
 >;
 
-export type SettingsProps = NativeStackScreenProps<TabParamList, typeof Path.Settings>;
+export type SettingsProps = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, typeof Path.Settings>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 // *** Tab Specific Props ***
 export type TabBarIconProps = {

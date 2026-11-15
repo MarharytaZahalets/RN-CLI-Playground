@@ -10,8 +10,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   text: {
-    color: Colors.primary,
-    fontSize: 22,
+    color: Colors.textMuted,
+    fontSize: 18,
   },
 });
 

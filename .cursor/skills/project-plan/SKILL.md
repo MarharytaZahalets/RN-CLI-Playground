@@ -186,3 +186,34 @@ Do not modify package.json.
 Do not modify Android/iOS files.
 Do not run builds.
 Do not perform the Android migration.
+
+--------------------------------------------------
+MODAL AND BOTTOM SHEET CONVENTIONS
+--------------------------------------------------
+
+Reference implementation: Status selection in `src/components/AppActionSheet`.
+
+Before creating a new modal or bottom sheet, reuse this component or match it visually. Do not introduce unrelated modal chrome.
+
+Bottom sheets (Status, Due date, and similar):
+
+- Small horizontal drag handle at the top (grabber): ~36×5pt, `Colors.neutral`, radius 2.
+- Container background: `Colors.background`.
+- Top corners: `Radius.xl` (28).
+- Content padding: 20 horizontal; tight top spacing under the grabber; bottom safe-area padding (`useBottomSafeAreaPadding` or equivalent insets).
+- Header: bold ~22pt title (`Colors.text`) on the leading side; optional circular close control (`Colors.glassMuted`, 36pt) on the trailing side.
+- Typography, spacing, and pressed opacity (~0.7) must match the Status sheet.
+- Selected rows: `Colors.rowSelected` with primary border; unselected: `Colors.elevated` with glass border; radius `Radius.md`.
+- Dark theme only. No light/white sheet backgrounds.
+
+Full-screen editors (for example Description) are screens, not sheets:
+
+- Edge-to-edge `Colors.background`, including safe-area regions.
+- Interactive chrome respects safe areas (header below status bar / Dynamic Island).
+- No grabber and no white side margins.
+
+Dismissal:
+
+- Grabber swipe, overlay tap, and close/cancel discard unconfirmed picker drafts.
+- Confirm actions (Done / row tap) commit and dismiss.
+- Do not mix sheet styling with ad-hoc `Modal` layouts unless the pattern cannot use `AppActionSheet`.

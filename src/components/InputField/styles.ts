@@ -1,18 +1,22 @@
 import { StyleSheet } from 'react-native';
 
 import { Colors } from '../../core/theme/colors';
+import { Radius, glassSurface } from '../../core/theme/layout';
 
 const styles = StyleSheet.create({
   input: {
-    backgroundColor: Colors.input,
-    borderRadius: 12,
+    ...glassSurface,
+    borderRadius: Radius.md,
     color: Colors.text,
     fontSize: 16,
-    marginBottom: 10,
-    padding: 14,
+    marginBottom: 4,
+    minHeight: 48,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   title: {
-    fontSize: 20,
+    color: Colors.text,
+    fontSize: 16,
     marginBottom: 10,
     marginTop: 20,
   },

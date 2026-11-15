@@ -324,4 +324,55 @@ describe('useTaskViewModel', () => {
       }),
     );
   });
+
+  it('filters visible tasks by in-progress status', () => {
+    const done = { ...task, id: '2', title: 'Done', status: 'done' as const };
+    const inProcess = { ...task, id: '3', title: 'WIP', status: 'inProcess' as const };
+    const store = createStore({ taskList: [task, done, inProcess] });
+    const getVm = renderViewModel(store);
+
+    act(() => {
+      getVm().setStatusFilter('inProgress');
+    });
+
+    expect(mockedApi.getTasks).not.toHaveBeenCalled();
+    expect(store.getState().taskList.taskList.map((item) => item.id)).toEqual(['3']);
+    expect(getVm().statusFilter).toBe('inProgress');
+  });
+
+  it('applies search and status filtering together', () => {
+    const match = { ...task, id: '2', title: 'Fix sheet', status: 'inProcess' as const };
+    const other = { ...task, id: '3', title: 'Fix nav', status: 'inProcess' as const };
+    const done = { ...task, id: '4', title: 'Fix sheet', status: 'done' as const };
+    const store = createStore({ taskList: [match, other, done] });
+    const getVm = renderViewModel(store);
+
+    act(() => {
+      getVm().setStatusFilter('inProgress');
+      getVm().searchTaskList('sheet');
+    });
+
+    expect(store.getState().taskList.taskList.map((item) => item.id)).toEqual(['2']);
+  });
+
+  it('filters locally while searching and does not refetch when clearing', () => {
+    const match = { ...task, id: '2', title: 'Write task notes' };
+    const other = { ...task, id: '3', title: 'Fix navigation' };
+    const store = createStore({ taskList: [match, other] });
+    const getVm = renderViewModel(store);
+
+    act(() => {
+      getVm().searchTaskList('task');
+    });
+
+    expect(mockedApi.getTasks).not.toHaveBeenCalled();
+    expect(store.getState().taskList.taskList.map((item) => item.id)).toEqual(['2']);
+
+    act(() => {
+      getVm().searchTaskList('');
+    });
+
+    expect(mockedApi.getTasks).not.toHaveBeenCalled();
+    expect(store.getState().taskList.taskList.map((item) => item.id)).toEqual(['2', '3']);
+  });
 });
